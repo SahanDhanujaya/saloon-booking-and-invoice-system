@@ -33,7 +33,7 @@ const menuItems = [
     href: "/appointments",
     icon: <BookIcon className="h-4 w-4 mr-1" />,
   },
-  { name: "Invoice", href: "/invoice", icon: <Receipt className="h-4 w-4 mr-1" /> },
+  { name: "Invoices", href: "/invoices", icon: <Receipt className="h-4 w-4 mr-1" /> },
   {
     name: "Reports",
     href: "/reports",
@@ -43,7 +43,12 @@ const menuItems = [
 
 const Aside = () => {
   const pathname = usePathname();
-  const { isAsideOpen, closeAside } = useAside();
+  const { isAsideOpen, closeAside, setCurrentTabName } = useAside();
+
+  const handleTabClick = (tabName: string) => {
+    setCurrentTabName(tabName);
+    closeAside();
+  };
 
   return (
     <>
@@ -81,7 +86,7 @@ const Aside = () => {
                 }`}
               >
                 {item.icon}
-                <Link key={item.name} href={item.href} onClick={closeAside}>
+                <Link key={item.name} href={item.href} onClick={() => handleTabClick(item.name)}>
                   {item.name}
                 </Link>
               </div>
