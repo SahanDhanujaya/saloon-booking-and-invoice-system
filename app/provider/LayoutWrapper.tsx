@@ -5,6 +5,7 @@ import { AsideProvider } from "./AsideContext";
 import DefaultHeader from "@/components/headers/DefaultHeader";
 import Aside from "@/components/aside/Aside";
 import DefaultFooter from "@/components/footers/DefaultFooter";
+import { LoaderProvider } from "./LoaderContext";
 
 export default function LayoutWrapper({
   children,
@@ -14,22 +15,30 @@ export default function LayoutWrapper({
   const pathname = usePathname();
 
   const isAuthPage =
-    pathname === "/auth/signin" || pathname === "/auth/signup" || pathname === "/";
+    pathname === "/auth/signin" ||
+    pathname === "/auth/signup" ||
+    pathname === "/";
 
   if (isAuthPage) {
-    return <>{children}</>;
+    return (
+      <>
+        <LoaderProvider>{children}</LoaderProvider>
+      </>
+    );
   }
 
   return (
-    <AsideProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Aside />
-        <div className="flex flex-col">
-          <DefaultHeader />
-          <main className="p-4">{children}</main>
-          <DefaultFooter />
+    <LoaderProvider>
+      <AsideProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Aside />
+          <div className="flex flex-col">
+            <DefaultHeader />
+            <main className="p-4">{children}</main>
+            <DefaultFooter />
+          </div>
         </div>
-      </div>
-    </AsideProvider>
+      </AsideProvider>
+    </LoaderProvider>
   );
 }
