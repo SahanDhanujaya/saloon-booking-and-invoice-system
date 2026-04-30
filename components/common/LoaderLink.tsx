@@ -10,7 +10,7 @@ type LoaderLinkProps = {
   className?: string;
 };
 
-const LoaderLink = ({ href, children, className, ...props }: LoaderLinkProps) => {
+const LoaderLink = ({ href, children, className }: LoaderLinkProps) => {
   const pathname = usePathname();
   const { startLoading } = useLoader();
 

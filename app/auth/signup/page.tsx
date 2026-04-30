@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { EyeIcon, EyeClosedIcon } from "lucide-react";
+import { register } from "@/services/authService";
+import { toast } from "react-toastify";
+import { useLoader } from "@/app/provider/LoaderContext";
+import { useRouter } from "next/navigation";
+import PageLoader from "@/components/common/PageLoader";
+import LoaderLink from "@/components/common/LoaderLink";
 
 type SignupFormData = {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
+  role: string;
 };
 
 const Signup = () => {
@@ -17,11 +23,14 @@ const Signup = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "admin",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const { startLoading, stopLoading, isLoading } = useLoader();
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -30,21 +39,40 @@ const Signup = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    startLoading();
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      toast.warn("Passwords do not match");
       return;
     }
 
     if (!agreeTerms) {
-      alert("Please agree to the terms and conditions");
+      toast.warn("Please agree to the terms and conditions");
       return;
     }
-
-    console.log("Signup Data:", formData);
+    try {
+      const response = await register(formData);
+      if (response?.status === 201) {
+        toast.success("Account created successfully!");
+        router.push("/auth/signin");
+        console.log(response.data);
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration failed:", error);
+      toast.error("Registration failed. Please try again.");
+    }
+    stopLoading();
   };
+
+  useEffect(()=>{
+    stopLoading();
+  })
+
+  if (isLoading) return <PageLoader />
 
   return (
     <div className="min-h-screen w-full bg-linear-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-4">
@@ -54,9 +82,7 @@ const Signup = () => {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white text-xl font-bold shadow-lg">
               S
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Create Account
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
             <p className="mt-2 text-sm text-gray-500">
               Sign up to access your dashboard
             </p>
@@ -121,7 +147,11 @@ const Signup = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700"
                 >
-                  {showPassword ? <EyeClosedIcon size={20} /> : <EyeIcon size={20} />}
+                  {showPassword ? (
+                    <EyeClosedIcon size={20} />
+                  ) : (
+                    <EyeIcon size={20} />
+                  )}
                 </button>
               </div>
             </div>
@@ -145,9 +175,7 @@ const Signup = () => {
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700"
                 >
                   {showConfirmPassword ? (
@@ -168,7 +196,10 @@ const Signup = () => {
               />
               <label>
                 I agree to the{" "}
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-700">
+                <a
+                  href="#"
+                  className="font-medium text-blue-600 hover:text-blue-700"
+                >
                   Terms & Conditions
                 </a>
               </label>
@@ -184,12 +215,7 @@ const Signup = () => {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Already have an account?{" "}
-            <Link
-              href="/auth/signin"
-              className="font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Sign in
-            </Link>
+            <LoaderLink href="/auth/signin" className="font-semibold text-blue-600 hover:text-blue-700">Sign In</LoaderLink>
           </p>
         </div>
       </div>

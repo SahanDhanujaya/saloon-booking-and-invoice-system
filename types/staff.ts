@@ -1,3 +1,9 @@
+interface Status {
+  Active: 'active';
+  Inactive: 'inactive';
+  Onleave: 'onleave';
+  
+}
 export type StaffFormData = {
   id?: string;
   fullName: string;
@@ -8,8 +14,10 @@ export type StaffFormData = {
   salary: string;
   address: string;
   joinDate: string;
-  status: string;
+  status: Status[keyof Status];
   specialization: string;
   imageUrl: string;
   notes: string;
 };
+
+

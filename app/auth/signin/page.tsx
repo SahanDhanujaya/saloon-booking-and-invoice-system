@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import type { Signin as SigninFormData } from "@/types/signin";
+import { useEffect, useState } from "react";
+import type { SigninType as SigninFormData } from "@/types/login";
 import { EyeIcon, EyeClosedIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { login } from "@/services/authService";
+import PageLoader from "@/components/common/PageLoader";
+import { useLoader } from "@/app/provider/LoaderContext";
+import LoaderLink from "@/components/common/LoaderLink";
 
 const Signin = () => {
   const [formData, setFormData] = useState<SigninFormData>({
@@ -11,8 +16,9 @@ const Signin = () => {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const { startLoading, stopLoading, isLoading } = useLoader();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,11 +28,43 @@ const Signin = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const validateFields = () => {
+    if (formData.email === "") {
+      toast.warn("Email is can not be empty!");
+      return false;
+    }
+    if (formData.password === "") {
+      toast.warn("Password is can not be empty!");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    startLoading();
     e.preventDefault();
     console.log(formData, rememberMe);
+    if (!validateFields()) return;
+    try {
+      const response = await login(formData);
+      if (response?.status === 200) {
+        toast.success("Loging Successfull!");
+      } else {
+        toast.error("Loging Unsuccessfull!");
+      }
+    } catch (error) {
+      console.log("Login Failed!", error);
+      toast.error("Login Failed!");
+    }
     router.push("/dashboard");
+    stopLoading();
   };
+
+  useEffect(() => {
+    stopLoading();
+  });
+
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="min-h-screen w-full bg-linear-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center px-4">
@@ -118,12 +156,12 @@ const Signin = () => {
 
           <p className="mt-6 text-center text-sm text-gray-500">
             Don’t have an account?{" "}
-            <a
+            <LoaderLink
               href="/auth/signup"
               className="font-semibold text-blue-600 hover:text-blue-700"
             >
-              Create one
-            </a>
+              Create One
+            </LoaderLink>
           </p>
         </div>
       </div>
