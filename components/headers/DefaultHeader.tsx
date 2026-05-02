@@ -56,14 +56,14 @@ const handleLogout = () => {
           <MenuIcon className="h-5 w-5 text-gray-700" />
         </button>
 
-        <div className="flex w-full max-w-md items-center rounded-lg border border-gray-200 bg-white px-3 py-2 lg:max-w-lg">
+        {/* <div className="flex w-full max-w-md items-center rounded-lg border border-gray-200 bg-white px-3 py-2 lg:max-w-lg">
           <SearchIcon className="mr-2 h-4 w-4 shrink-0 text-gray-400" />
           <input
             type="search"
             placeholder="Search..."
             className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
           />
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-2">
           <div className="ml-2 hidden shrink-0 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 md:block">

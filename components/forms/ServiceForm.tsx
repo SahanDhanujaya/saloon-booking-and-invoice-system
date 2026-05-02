@@ -13,6 +13,8 @@ import {
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { ServiceFormData } from "@/types/service";
+import { useLoader } from "@/app/provider/LoaderContext";
+import PageLoader from "../common/PageLoader";
 
 interface ServiceFormProps {
   service?: ServiceFormData;
@@ -30,7 +32,7 @@ const ServiceForm = ({ service, onClose }: ServiceFormProps) => {
     imageUrl: service?.imageUrl || "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const { startLoading, stopLoading, isLoading } = useLoader();
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -78,7 +80,7 @@ const ServiceForm = ({ service, onClose }: ServiceFormProps) => {
       return;
     }
 
-    setLoading(true);
+    startLoading();
 
     try {
       // Replace this with your real API call
@@ -96,9 +98,11 @@ const ServiceForm = ({ service, onClose }: ServiceFormProps) => {
       console.error(error);
       toast.error("Failed to add service");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
+
+  if (isLoading) return <PageLoader>Service Saving...</PageLoader>;
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -291,10 +295,10 @@ const ServiceForm = ({ service, onClose }: ServiceFormProps) => {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isLoading}
                   className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {loading ? "Saving..." : "Add Service"}
+                  {isLoading ? "Saving..." : "Add Service"}
                 </button>
 
                 <button

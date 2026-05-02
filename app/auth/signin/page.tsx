@@ -67,7 +67,7 @@ const Signin = () => {
     stopLoading();
   });
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return <PageLoader >Signing In...</PageLoader>;
 
   return (
     <div className="min-h-screen w-full bg-linear-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center px-4">

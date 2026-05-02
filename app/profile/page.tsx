@@ -88,7 +88,7 @@ const ProfilePage = () => {
         : prev,
     );
   };
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return <PageLoader>Profile Loading...</PageLoader>;
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();

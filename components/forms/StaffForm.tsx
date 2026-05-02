@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { StaffFormData } from "@/types/staff";
-
+import { useLoader } from "@/app/provider/LoaderContext";
+import PageLoader from "../common/PageLoader";
+import { saveStaffMember } from "@/services/staffService";
+import { uploadImage } from "@/services/uploadImageService";
 
 type StaffFormProps = {
   staffData?: Partial<StaffFormData> | null;
@@ -33,9 +36,10 @@ const defaultStaffData: StaffFormData = {
   salary: "",
   address: "",
   joinDate: "",
-  status: "Active",
+  status: "active",
   specialization: "",
   imageUrl: "",
+  publicId: "",
   notes: "",
 };
 
@@ -45,17 +49,29 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
     ...staffData,
   });
 
-  const [loading, setLoading] = useState(false);
+  const { isLoading, startLoading, stopLoading } = useLoader();
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleProfilePictureChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: file,
+      }));
+    }
   };
 
   const handleReset = () => {
@@ -67,44 +83,64 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    startLoading();
 
     if (!formData.fullName.trim()) {
       toast.error("Staff name is required");
+      stopLoading();
       return;
     }
 
     if (!formData.role.trim()) {
       toast.error("Role is required");
+      stopLoading();
       return;
     }
 
     if (!formData.email.trim()) {
       toast.error("Email is required");
+      stopLoading();
       return;
     }
 
     if (!formData.phone.trim()) {
       toast.error("Phone number is required");
+      stopLoading();
       return;
     }
 
-    setLoading(true);
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      let updatedFormData = { ...formData };
 
-      onSubmit?.(formData);
-      toast.success(
-        staffData?.id ? "Staff updated successfully!" : "Staff added successfully!"
-      );
-      onClose();
+      if (formData.imageUrl instanceof File) {
+        const uploadResponse = await uploadImage(formData.imageUrl);
+
+        updatedFormData = {
+          ...updatedFormData,
+          imageUrl: uploadResponse.data.imageUrl,
+          publicId: uploadResponse.data.publicId,
+        };
+
+        setFormData(updatedFormData);
+      }
+
+      const response = await saveStaffMember(updatedFormData);
+
+      if (response?.status === 200 || response?.status === 201) {
+        toast.success("Staff added successfully!");
+        onClose();
+      } else {
+        toast.error("Something went wrong");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
     } finally {
-      setLoading(false);
+      stopLoading();
     }
   };
+
+  if (isLoading) return <PageLoader>Saving Staff...</PageLoader>;
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -308,15 +344,14 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
 
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-medium text-gray-600">
-                    Profile Image URL
+                    Profile Image
                   </label>
                   <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-3 focus-within:border-blue-500">
                     <Camera className="h-4 w-4 text-gray-400" />
                     <input
-                      type="text"
+                      type="file"
                       name="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={handleChange}
+                      onChange={handleProfilePictureChange}
                       placeholder="https://example.com/profile.jpg"
                       className="w-full bg-transparent text-sm outline-none"
                     />
@@ -344,14 +379,14 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isLoading}
                   className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {loading
+                  {isLoading
                     ? "Saving..."
                     : staffData?.id
-                    ? "Update Staff"
-                    : "Add Staff"}
+                      ? "Update Staff"
+                      : "Add Staff"}
                 </button>
 
                 <button
@@ -376,7 +411,7 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
                   {formData.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={formData.imageUrl}
+                      src={formData.imageUrl instanceof File ? URL.createObjectURL(formData.imageUrl) : formData.imageUrl}
                       alt="Staff preview"
                       className="h-24 w-24 rounded-full object-cover"
                     />
@@ -416,7 +451,8 @@ const StaffForm = ({ staffData, onClose, onSubmit }: StaffFormProps) => {
                 </div>
 
                 <p className="mt-4 text-sm text-gray-500">
-                  {formData.specialization || "Specialization will appear here."}
+                  {formData.specialization ||
+                    "Specialization will appear here."}
                 </p>
               </div>
             </div>

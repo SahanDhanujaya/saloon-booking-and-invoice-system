@@ -16,7 +16,8 @@ export type StaffFormData = {
   joinDate: string;
   status: Status[keyof Status];
   specialization: string;
-  imageUrl: string;
+  imageUrl: File | string;
+  publicId: string;
   notes: string;
 };
 
