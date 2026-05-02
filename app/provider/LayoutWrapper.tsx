@@ -6,6 +6,8 @@ import DefaultHeader from "@/components/headers/DefaultHeader";
 import Aside from "@/components/aside/Aside";
 import DefaultFooter from "@/components/footers/DefaultFooter";
 import { LoaderProvider } from "./LoaderContext";
+import { AuthProvider } from "./AuthContext";
+import NotFoundPage from "../not-found/page";
 
 export default function LayoutWrapper({
   children,
@@ -17,29 +19,33 @@ export default function LayoutWrapper({
   const isAuthPage =
     pathname === "/auth/signin" ||
     pathname === "/auth/signup" ||
-    pathname === "/" || 
+    pathname === "/" ||
     pathname.endsWith("/view-all");
 
   if (isAuthPage) {
     return (
       <>
-        <LoaderProvider>{children}</LoaderProvider>
+        <AuthProvider>
+          <LoaderProvider>{children}</LoaderProvider>
+        </AuthProvider>
       </>
     );
   }
 
   return (
-    <LoaderProvider>
-      <AsideProvider>
-        <div className="min-h-screen bg-gray-50">
-          <Aside />
-          <div className="flex flex-col">
-            <DefaultHeader />
-            <main className="p-4">{children}</main>
-            <DefaultFooter />
+    <AuthProvider>
+      <LoaderProvider>
+        <AsideProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Aside />
+            <div className="flex flex-col">
+              <DefaultHeader />
+              <main className="p-4 text-black">{children}</main>
+              <DefaultFooter />
+            </div>
           </div>
-        </div>
-      </AsideProvider>
-    </LoaderProvider>
+        </AsideProvider>
+      </LoaderProvider>
+    </AuthProvider>
   );
 }

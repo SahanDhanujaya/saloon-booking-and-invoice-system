@@ -5,10 +5,11 @@ import type { SigninType as SigninFormData } from "@/types/login";
 import { EyeIcon, EyeClosedIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { login } from "@/services/authService";
+import { login as userLogin } from "@/services/authService";
 import PageLoader from "@/components/common/PageLoader";
 import { useLoader } from "@/app/provider/LoaderContext";
 import LoaderLink from "@/components/common/LoaderLink";
+import { useAuth } from "@/app/provider/AuthContext";
 
 const Signin = () => {
   const [formData, setFormData] = useState<SigninFormData>({
@@ -20,6 +21,7 @@ const Signin = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const { startLoading, stopLoading, isLoading } = useLoader();
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -46,8 +48,9 @@ const Signin = () => {
     console.log(formData, rememberMe);
     if (!validateFields()) return;
     try {
-      const response = await login(formData);
+      const response = await userLogin(formData);
       if (response?.status === 200) {
+        login(response.data.data);
         toast.success("Loging Successfull!");
         router.push("/dashboard");
       } else {

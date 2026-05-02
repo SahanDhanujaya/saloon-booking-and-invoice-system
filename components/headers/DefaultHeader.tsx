@@ -4,12 +4,14 @@ import { useAside } from "@/app/provider/AsideContext";
 import { MenuIcon, SearchIcon, User, LogOut, UserCircle2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import useNavigateWithLoader from "@/hooks/useNavigateWithLoader";
+import { useAuth } from "@/app/provider/AuthContext";
 
 const DefaultHeader = () => {
   const { toggleAside } = useAside();
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { navigate } = useNavigateWithLoader();
+  const { logout, user } = useAuth();
 
   const localDate = new Date().toLocaleDateString("en-US", {
     weekday: "short",
@@ -38,6 +40,7 @@ const DefaultHeader = () => {
 
 const handleLogout = () => {
   setOpenProfileMenu(false);
+  logout();
   navigate("/auth/signin");
 };
 
@@ -71,9 +74,18 @@ const handleLogout = () => {
             <button
               type="button"
               onClick={() => setOpenProfileMenu((prev) => !prev)}
-              className="rounded-full bg-gray-100 p-2 transition hover:bg-gray-200"
+              className="rounded-full bg-gray-100 transition hover:bg-gray-200"
             >
-              <User className="h-6 w-6 text-gray-700" />
+              {user ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.imageUrl}
+                  alt={user.firstName}
+                  className="h-8 w-8 rounded-full object-cover shadow-md border-2 border-green-500 cursor-pointer"
+                />
+              ) : (
+                <User className="h-6 w-6 m-2 text-gray-700" />
+              )}
             </button>
 
             {openProfileMenu && (
@@ -81,7 +93,7 @@ const handleLogout = () => {
                 <button
                   type="button"
                   onClick={handleProfile}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 cursor-pointer"
                 >
                   <UserCircle2 className="h-4 w-4" />
                   Profile
@@ -90,7 +102,7 @@ const handleLogout = () => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
